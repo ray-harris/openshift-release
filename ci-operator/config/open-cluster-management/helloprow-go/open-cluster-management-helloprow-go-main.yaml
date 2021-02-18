@@ -1,0 +1,40 @@
+binary_build_commands: make build
+build_root:
+  image_stream_tag:
+    name: builder
+    namespace: open-cluster-management
+    tag: go1.16-linux-amd64
+images:
+- dockerfile_path: Dockerfile.prow
+  to: helloprow-go
+promotion:
+  namespace: open-cluster-management
+  tag: latest
+resources:
+  '*':
+    requests:
+      cpu: 100m
+      memory: 200Mi
+tests:
+- as: e2e
+  steps:
+    env:
+      CLUSTERPOOL_HOST_NAMESPACE: cicd
+      CLUSTERPOOL_HOST_PROW_KUBE_SECRET: acm-cicd-clusterpool-shared
+    test:
+    - as: e2e
+      commands: |
+        echo "${IMAGE_PULL_REF}"
+      dependencies:
+      - env: IMAGE_PULL_REF
+        name: helloprow-go
+      from: bin
+      resources:
+        requests:
+          cpu: 100m
+          memory: 200Mi
+    workflow: ocm-e2e-clusterpool
+zz_generated_metadata:
+  branch: main
+  org: open-cluster-management
+  repo: helloprow-go
